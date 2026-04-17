@@ -3,9 +3,9 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { Html, OrbitControls, RoundedBox, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
+import GameHud from './components/hud/GameHud'
+import type { Direction } from './game/types'
 import './App.css'
-
-type Direction = 'up' | 'down' | 'left' | 'right'
 
 type Tile = {
   id: number
@@ -43,7 +43,7 @@ type HudPopKey = 'score' | 'bestPet'
 const GRID_SIZE = 4
 const CELL_SIZE = 1.95
 const HALF_GRID_OFFSET = ((GRID_SIZE - 1) * CELL_SIZE) / 2
-const DEFAULT_CAMERA_POSITION = new THREE.Vector3(0, 6, 12) // 默认相机位置
+const DEFAULT_CAMERA_POSITION = new THREE.Vector3(0, 4, 10) // 默认相机位置
 const DEFAULT_CAMERA_TARGET = new THREE.Vector3(0, 0.7, 0)
 
 const PET_RULES = [
@@ -662,61 +662,16 @@ function App() {
     <main className="app-shell">
       <section className="canvas-panel canvas-panel-full">
         <GameScene board={game.board} />
-        <div className="hud-overlay">
-          <div className="hud-topbar">
-            <div className={`stat-card ${poppingStat.score ? 'is-popping' : ''}`}>
-              <span>Score</span>
-              <strong>{game.score}</strong>
-            </div>
-            <div className={`stat-card ${poppingStat.bestPet ? 'is-popping' : ''}`}>
-              <span>Best Pet</span>
-              <strong>{bestPetLabel}</strong>
-            </div>
-            <button type="button" className="restart-button hud-button" onClick={restartGame}>
-              Restart
-            </button>
-          </div>
-
-          <div className="hud-controls">
-            <button
-              type="button"
-              className={`hud-button ${activeDirection === 'up' ? 'is-active' : ''}`}
-              onClick={() => executeMove('up')}
-            >
-              Up
-            </button>
-            <div className="controls-row">
-              <button
-                type="button"
-                className={`hud-button ${activeDirection === 'left' ? 'is-active' : ''}`}
-                onClick={() => executeMove('left')}
-              >
-                Left
-              </button>
-              <button
-                type="button"
-                className={`hud-button ${activeDirection === 'down' ? 'is-active' : ''}`}
-                onClick={() => executeMove('down')}
-              >
-                Down
-              </button>
-              <button
-                type="button"
-                className={`hud-button ${activeDirection === 'right' ? 'is-active' : ''}`}
-                onClick={() => executeMove('right')}
-              >
-                Right
-              </button>
-            </div>
-          </div>
-
-          {game.gameOver ? (
-            <div className="game-over-card hud-game-over">
-              <strong>Game Over</strong>
-              <p>棋盘已经没有可移动或可合并的宠物了，点击 Restart 再来一局。</p>
-            </div>
-          ) : null}
-        </div>
+        <GameHud
+          score={game.score}
+          bestPetLabel={bestPetLabel}
+          isScorePopping={poppingStat.score}
+          isBestPetPopping={poppingStat.bestPet}
+          activeDirection={activeDirection}
+          isGameOver={game.gameOver}
+          onRestart={restartGame}
+          onMove={executeMove}
+        />
       </section>
     </main>
   )

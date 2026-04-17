@@ -1,0 +1,51 @@
+.game-over-card {
+  padding: 20px 22px;
+  border: 1px solid rgba(120, 53, 15, 0.14);
+  border-radius: 24px;
+  background: rgba(255, 252, 246, 0.82);
+  box-shadow: 0 18px 60px rgba(120, 53, 15, 0.08);
+}
+
+.game-over-card strong {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: #8a2414;
+}
+
+.hud-game-over {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  display: flex;
+  width: min(460px, calc(100vw - 28px));
+  max-width: none;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 18px;
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+  animation: game-over-banner-in 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.hud-game-over strong,
+.hud-game-over p {
+  margin: 0;
+}
+
+.hud-game-over strong {
+  margin-right: 10px;
+}
+
+@keyframes game-over-banner-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
