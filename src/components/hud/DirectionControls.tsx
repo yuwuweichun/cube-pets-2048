@@ -6,16 +6,18 @@ type DirectionConfig = {
   label: string
 }
 
+type DirectionLayout = {
+  primary: DirectionConfig
+  row: DirectionConfig[]
+}
+
 type DirectionControlsProps = {
   activeDirection: Direction | null
   onMove: (direction: Direction) => void
-  directions?: {
-    primary: DirectionConfig
-    row: DirectionConfig[]
-  }
+  directions?: DirectionLayout
 }
 
-const DEFAULT_DIRECTIONS: DirectionControlsProps['directions'] = {
+const DEFAULT_DIRECTIONS: DirectionLayout = {
   primary: { direction: 'up', label: 'Up' },
   row: [
     { direction: 'left', label: 'Left' },
@@ -56,4 +58,3 @@ function DirectionControls({
 }
 
 export default DirectionControls
-
