@@ -12,33 +12,26 @@ import { getBestPetLabel } from './game/pets'
 import type { Direction, GameState, HudPopKey } from './game/types'
 import './App.css'
 
+type AppState = {
+  game: GameState
+  statPopVersion: Record<HudPopKey, number>
+}
+
+function getMaxTile(board: GameState['board']) {
+  return Math.max(...board.flatMap((row) => row.map((tile) => tile?.value ?? 0)), 0)
+}
+
 function App() {
-  const [game, setGame] = useState<GameState>(() => buildInitialState())
+  const [appState, setAppState] = useState<AppState>(() => ({
+    game: buildInitialState(),
+    statPopVersion: {
+      score: 0,
+      bestPet: 0,
+    },
+  }))
   const [activeDirection, setActiveDirection] = useState<Direction | null>(null)
-  const [poppingStat, setPoppingStat] = useState<Record<HudPopKey, boolean>>({
-    score: false,
-    bestPet: false,
-  })
   const feedbackTimeoutRef = useRef<number | null>(null)
-  const scorePopTimeoutRef = useRef<number | null>(null)
-  const bestPetPopTimeoutRef = useRef<number | null>(null)
-  const previousScoreRef = useRef(game.score)
-  const previousMaxTileRef = useRef(0)
-
-  function triggerStatPop(key: HudPopKey) {
-    const timeoutRef = key === 'score' ? scorePopTimeoutRef : bestPetPopTimeoutRef
-
-    setPoppingStat((current) => ({ ...current, [key]: true }))
-
-    if (timeoutRef.current) {
-      window.clearTimeout(timeoutRef.current)
-    }
-
-    timeoutRef.current = window.setTimeout(() => {
-      setPoppingStat((current) => ({ ...current, [key]: false }))
-      timeoutRef.current = null
-    }, 260)
-  }
+  const { game, statPopVersion } = appState
 
   function flashDirection(direction: Direction) {
     setActiveDirection(direction)
@@ -55,21 +48,32 @@ function App() {
 
   function executeMove(direction: Direction) {
     flashDirection(direction)
-    setGame((current) => {
-      if (current.gameOver) {
+    setAppState((current) => {
+      if (current.game.gameOver) {
         return current
       }
 
-      const moved = moveBoard(normalizeBoardMotion(current.board), direction)
+      const moved = moveBoard(normalizeBoardMotion(current.game.board), direction)
       if (!moved.changed) {
         return current
       }
 
       const withSpawn = placeRandomTile(moved.board)
-      return {
+      const nextGame = {
         board: withSpawn,
-        score: current.score + moved.gained,
+        score: current.game.score + moved.gained,
         gameOver: !hasAvailableMoves(withSpawn),
+      }
+
+      return {
+        game: nextGame,
+        statPopVersion: {
+          score:
+            current.statPopVersion.score + (nextGame.score > current.game.score ? 1 : 0),
+          bestPet:
+            current.statPopVersion.bestPet +
+            (getMaxTile(nextGame.board) > getMaxTile(current.game.board) ? 1 : 0),
+        },
       }
     })
   }
@@ -105,42 +109,20 @@ function App() {
     }
   }, [])
 
-  const maxTile = Math.max(
-    ...game.board.flatMap((row) => row.map((tile) => tile?.value ?? 0)),
-    0,
-  )
+  const maxTile = getMaxTile(game.board)
   const bestPetLabel = getBestPetLabel(maxTile)
 
-  useEffect(() => {
-    if (game.score > previousScoreRef.current) {
-      triggerStatPop('score')
-    }
-
-    previousScoreRef.current = game.score
-  }, [game.score])
-
-  useEffect(() => {
-    if (maxTile > previousMaxTileRef.current) {
-      triggerStatPop('bestPet')
-    }
-
-    previousMaxTileRef.current = maxTile
-  }, [maxTile])
-
   function restartGame() {
-    setGame(buildInitialState())
+    setAppState((current) => ({
+      game: buildInitialState(),
+      statPopVersion: current.statPopVersion,
+    }))
   }
 
   useEffect(() => {
     return () => {
       if (feedbackTimeoutRef.current) {
         window.clearTimeout(feedbackTimeoutRef.current)
-      }
-      if (scorePopTimeoutRef.current) {
-        window.clearTimeout(scorePopTimeoutRef.current)
-      }
-      if (bestPetPopTimeoutRef.current) {
-        window.clearTimeout(bestPetPopTimeoutRef.current)
       }
     }
   }, [])
@@ -152,8 +134,8 @@ function App() {
         <GameHud
           score={game.score}
           bestPetLabel={bestPetLabel}
-          isScorePopping={poppingStat.score}
-          isBestPetPopping={poppingStat.bestPet}
+          scorePopVersion={statPopVersion.score}
+          bestPetPopVersion={statPopVersion.bestPet}
           activeDirection={activeDirection}
           isGameOver={game.gameOver}
           onRestart={restartGame}

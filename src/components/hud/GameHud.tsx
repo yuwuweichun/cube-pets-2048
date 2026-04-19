@@ -7,8 +7,8 @@ import './GameHud.css'
 type GameHudProps = {
   score: number
   bestPetLabel: string
-  isScorePopping: boolean
-  isBestPetPopping: boolean
+  scorePopVersion: number
+  bestPetPopVersion: number
   activeDirection: Direction | null
   isGameOver: boolean
   onRestart: () => void
@@ -19,8 +19,8 @@ type GameHudProps = {
 function GameHud({
   score,
   bestPetLabel,
-  isScorePopping,
-  isBestPetPopping,
+  scorePopVersion,
+  bestPetPopVersion,
   activeDirection,
   isGameOver,
   onRestart,
@@ -30,8 +30,18 @@ function GameHud({
   return (
     <div className="hud-overlay">
       <div className="hud-topbar">
-        <StatCard label="Score" value={score} isPopping={isScorePopping} />
-        <StatCard label="Best Pet" value={bestPetLabel} isPopping={isBestPetPopping} />
+        <StatCard
+          key={`score-${scorePopVersion}`}
+          label="Score"
+          value={score}
+          isPopping={scorePopVersion > 0}
+        />
+        <StatCard
+          key={`best-pet-${bestPetPopVersion}`}
+          label="Best Pet"
+          value={bestPetLabel}
+          isPopping={bestPetPopVersion > 0}
+        />
         <button type="button" className="hud-button restart-button" onClick={onRestart}>
           Restart
         </button>
@@ -45,4 +55,3 @@ function GameHud({
 }
 
 export default GameHud
-
