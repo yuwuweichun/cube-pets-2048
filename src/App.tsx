@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import GameHud from './components/hud/GameHud'
 import GameScene from './components/scene/GameScene'
 import {
@@ -33,7 +33,7 @@ function App() {
   const feedbackTimeoutRef = useRef<number | null>(null)
   const { game, statPopVersion } = appState
 
-  function flashDirection(direction: Direction) {
+  const flashDirection = useCallback((direction: Direction) => {
     setActiveDirection(direction)
 
     if (feedbackTimeoutRef.current) {
@@ -44,9 +44,9 @@ function App() {
       setActiveDirection(null)
       feedbackTimeoutRef.current = null
     }, 160)
-  }
+  }, [])
 
-  function executeMove(direction: Direction) {
+  const executeMove = useCallback((direction: Direction) => {
     flashDirection(direction)
     setAppState((current) => {
       if (current.game.gameOver) {
@@ -76,7 +76,7 @@ function App() {
         },
       }
     })
-  }
+  }, [flashDirection])
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -107,7 +107,7 @@ function App() {
         window.clearTimeout(feedbackTimeoutRef.current)
       }
     }
-  }, [])
+  }, [executeMove])
 
   const maxTile = getMaxTile(game.board)
   const bestPetLabel = getBestPetLabel(maxTile)
