@@ -331,6 +331,10 @@
   overflow-x: auto;
 }
 
+.leaderboard-mobile-view {
+  display: none;
+}
+
 .leaderboard-table {
   width: 100%;
   border-collapse: collapse;
@@ -382,6 +386,109 @@
   color: #8fd9ff;
 }
 
+.leaderboard-mobile-list {
+  display: grid;
+  gap: 12px;
+}
+
+.leaderboard-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(120, 53, 15, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 250, 244, 0.86);
+}
+
+.leaderboard-card.is-night {
+  border-color: rgba(142, 184, 255, 0.12);
+  background: rgba(22, 34, 55, 0.9);
+}
+
+.leaderboard-card-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.leaderboard-rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 46px;
+  min-height: 46px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.14);
+  color: #a16207;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.leaderboard-card.is-night .leaderboard-rank-badge {
+  background: rgba(126, 211, 255, 0.14);
+  color: #8fd9ff;
+}
+
+.leaderboard-card-player {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.leaderboard-card-player strong {
+  color: #4d2b15;
+  font-size: 16px;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.leaderboard-card-player span {
+  color: #7b5e49;
+  font-size: 14px;
+}
+
+.leaderboard-card.is-night .leaderboard-card-player strong {
+  color: #edf4ff;
+}
+
+.leaderboard-card.is-night .leaderboard-card-player span {
+  color: rgba(184, 206, 241, 0.74);
+}
+
+.leaderboard-card-meta {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.leaderboard-card-meta div {
+  display: grid;
+  gap: 4px;
+}
+
+.leaderboard-card-meta dt {
+  color: #8b6d59;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.leaderboard-card-meta dd {
+  margin: 0;
+  color: #5a2412;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.leaderboard-card.is-night .leaderboard-card-meta dt {
+  color: rgba(184, 206, 241, 0.62);
+}
+
+.leaderboard-card.is-night .leaderboard-card-meta dd {
+  color: #eaf2ff;
+}
+
 @keyframes hud-modal-enter {
   from {
     opacity: 0;
@@ -428,5 +535,13 @@
 
   .hud-button {
     width: 100%;
+  }
+
+  .leaderboard-desktop-view {
+    display: none;
+  }
+
+  .leaderboard-mobile-view {
+    display: grid;
   }
 }

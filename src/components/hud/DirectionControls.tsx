@@ -34,26 +34,24 @@ function DirectionControls({
   theme = 'day',
   directions = DEFAULT_DIRECTIONS,
 }: DirectionControlsProps) {
+  const controlButtons = [
+    { direction: directions.primary.direction, label: directions.primary.label, slotClassName: 'slot-up' },
+    ...directions.row.map(({ direction, label }) => ({ direction, label, slotClassName: `slot-${direction}` })),
+  ]
+
   return (
     <div className="hud-controls">
-      <button
-        type="button"
-        className={`hud-button is-${theme} ${activeDirection === directions.primary.direction ? 'is-active' : ''}`}
-        onClick={() => onMove(directions.primary.direction)}
-      >
-        {directions.primary.label}
-      </button>
-
-      <div className="controls-row">
-        {directions.row.map(({ direction, label }) => (
-          <button
-            key={direction}
-            type="button"
-            className={`hud-button is-${theme} ${activeDirection === direction ? 'is-active' : ''}`}
-            onClick={() => onMove(direction)}
-          >
-            {label}
-          </button>
+      <div className="controls-grid">
+        {controlButtons.map(({ direction, label, slotClassName }) => (
+          <div key={direction} className={`controls-slot ${slotClassName}`}>
+            <button
+              type="button"
+              className={`direction-button is-${theme} ${activeDirection === direction ? 'is-active' : ''}`}
+              onClick={() => onMove(direction)}
+            >
+              {label}
+            </button>
+          </div>
         ))}
       </div>
     </div>

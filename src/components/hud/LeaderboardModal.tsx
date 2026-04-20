@@ -64,6 +64,42 @@ function formatSubmittedAt(value: string) {
   }).format(date)
 }
 
+function renderLeaderboardRow(entry: LeaderboardEntry, index: number) {
+  return (
+    <tr key={entry.id}>
+      <td>{index + 1}</td>
+      <td>{entry.player_name}</td>
+      <td>{entry.score}</td>
+      <td>{entry.best_pet}</td>
+      <td>{formatSubmittedAt(entry.submitted_at)}</td>
+    </tr>
+  )
+}
+
+function renderLeaderboardCard(entry: LeaderboardEntry, index: number, theme: SceneTheme) {
+  return (
+    <article key={entry.id} className={`leaderboard-card is-${theme}`}>
+      <div className="leaderboard-card-main">
+        <span className="leaderboard-rank-badge">#{index + 1}</span>
+        <div className="leaderboard-card-player">
+          <strong>{entry.player_name}</strong>
+          <span>分数 {entry.score}</span>
+        </div>
+      </div>
+      <dl className="leaderboard-card-meta">
+        <div>
+          <dt>最佳宠物</dt>
+          <dd>{entry.best_pet}</dd>
+        </div>
+        <div>
+          <dt>提交时间</dt>
+          <dd>{formatSubmittedAt(entry.submitted_at)}</dd>
+        </div>
+      </dl>
+    </article>
+  )
+}
+
 function LeaderboardModal({
   entries,
   errorMessage,
@@ -124,7 +160,8 @@ function LeaderboardModal({
             ) : entries.length === 0 ? (
               <p className="hud-inline-note">还没有成绩记录，成为第一个上榜的玩家吧。</p>
             ) : (
-              <div className="leaderboard-table-wrap">
+              <>
+                <div className="leaderboard-table-wrap leaderboard-desktop-view">
                 <table className={`leaderboard-table is-${theme}`}>
                   <thead>
                     <tr>
@@ -136,18 +173,15 @@ function LeaderboardModal({
                     </tr>
                   </thead>
                   <tbody>
-                    {entries.map((entry, index) => (
-                      <tr key={entry.id}>
-                        <td>{index + 1}</td>
-                        <td>{entry.player_name}</td>
-                        <td>{entry.score}</td>
-                        <td>{entry.best_pet}</td>
-                        <td>{formatSubmittedAt(entry.submitted_at)}</td>
-                      </tr>
-                    ))}
+                    {entries.map((entry, index) => renderLeaderboardRow(entry, index))}
                   </tbody>
                 </table>
-              </div>
+                </div>
+
+                <div className="leaderboard-mobile-list leaderboard-mobile-view">
+                  {entries.map((entry, index) => renderLeaderboardCard(entry, index, theme))}
+                </div>
+              </>
             )}
           </div>
         </div>

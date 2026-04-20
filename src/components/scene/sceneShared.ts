@@ -67,8 +67,21 @@ export type NightLampConfig = {
 
 export const CELL_SIZE = 1.95
 export const HALF_GRID_OFFSET = ((GRID_SIZE - 1) * CELL_SIZE) / 2
+
+// Camera tuning values live here so they are easy to tweak by hand later.
 export const DEFAULT_CAMERA_POSITION = new THREE.Vector3(0, 4, 10)
 export const DEFAULT_CAMERA_TARGET = new THREE.Vector3(0, 0.7, 0)
+export const DEFAULT_CAMERA_FOV = 34
+
+// Initial camera distance from target. Mobile can start a bit farther out.
+export const DESKTOP_CAMERA_DISTANCE = DEFAULT_CAMERA_POSITION.distanceTo(DEFAULT_CAMERA_TARGET)
+export const MOBILE_CAMERA_DISTANCE = 24
+
+// OrbitControls dolly range for desktop/mobile.
+export const DESKTOP_MIN_CAMERA_DISTANCE = 5.5
+export const DESKTOP_MAX_CAMERA_DISTANCE = 14
+export const MOBILE_MIN_CAMERA_DISTANCE = 8.5
+export const MOBILE_MAX_CAMERA_DISTANCE = 24
 export const THEME_BLEND_DAMPING = 4.8
 
 export const NIGHT_STAR_FIELD_PLACEMENT: StarFieldPlacement = {

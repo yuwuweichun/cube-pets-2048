@@ -23,10 +23,12 @@ function seededUnitValue(seed: number) {
 type ThemeBlendControllerProps = {
   theme: SceneTheme
   themeBlendRef: ThemeBlendRef
+  isMobileViewport?: boolean
 }
 
 type ThemeBlendOnlyProps = {
   themeBlendRef: ThemeBlendRef
+  isMobileViewport?: boolean
 }
 
 type NightStarLayerProps = {
@@ -48,7 +50,7 @@ function ThemeBlendController({ theme, themeBlendRef }: ThemeBlendControllerProp
   return null
 }
 
-function SceneEnvironment({ themeBlendRef }: ThemeBlendOnlyProps) {
+function SceneEnvironment({ themeBlendRef, isMobileViewport = false }: ThemeBlendOnlyProps) {
   const { scene } = useThree()
   const sceneRef = useRef<THREE.Scene | null>(null)
   const backgroundColor = useMemo(
@@ -76,7 +78,7 @@ function SceneEnvironment({ themeBlendRef }: ThemeBlendOnlyProps) {
     }
 
     targetScene.background = backgroundColor
-    targetScene.fog = fog
+    targetScene.fog = isMobileViewport ? null : fog
 
     return () => {
       if (targetScene.background === backgroundColor) {
@@ -87,7 +89,7 @@ function SceneEnvironment({ themeBlendRef }: ThemeBlendOnlyProps) {
         targetScene.fog = null
       }
     }
-  }, [backgroundColor])
+  }, [backgroundColor, isMobileViewport])
 
   useFrame(() => {
     const blend = themeBlendRef.current
@@ -323,11 +325,15 @@ function NightLampLight({ themeBlendRef }: ThemeBlendOnlyProps) {
   )
 }
 
-export function SceneAtmosphere({ theme, themeBlendRef }: ThemeBlendControllerProps) {
+export function SceneAtmosphere({
+  theme,
+  themeBlendRef,
+  isMobileViewport = false,
+}: ThemeBlendControllerProps) {
   return (
     <>
       <ThemeBlendController theme={theme} themeBlendRef={themeBlendRef} />
-      <SceneEnvironment themeBlendRef={themeBlendRef} />
+      <SceneEnvironment themeBlendRef={themeBlendRef} isMobileViewport={isMobileViewport} />
       <SceneLights themeBlendRef={themeBlendRef} />
       <NightStars themeBlendRef={themeBlendRef} />
       <NightLampLight themeBlendRef={themeBlendRef} />
