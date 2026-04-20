@@ -161,7 +161,7 @@ export function PetTile({ tile, position, theme, themeBlendRef }: PetTileProps) 
         />
       </RoundedBox>
       <primitive object={model} position={[0, 0.16, 0]} />
-      <Html position={[-0.46, 0.17, 0.47]} transform sprite>
+      <Html position={[-0.46, 0.17, 0.47]} transform sprite zIndexRange={[0, 10]}>
         <div className={`pet-badge ${theme === 'night' ? 'pet-badge-night' : ''}`}>
           <strong>{tile.value}</strong>
         </div>

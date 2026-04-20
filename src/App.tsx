@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useGameAudio } from './audio/useGameAudio'
 import GameHud from './components/hud/GameHud'
+import LeaderboardModal from './components/hud/LeaderboardModal'
+import ScoreSubmitModal from './components/hud/ScoreSubmitModal'
 import GameScene, { type SceneTheme } from './components/scene/GameScene'
 import {
   buildInitialState,
@@ -10,6 +12,7 @@ import {
   placeRandomTile,
 } from './game/board'
 import { getBestPetLabel } from './game/pets'
+import { fetchLeaderboard, submitLeaderboardScore, type LeaderboardEntry } from './lib/leaderboard'
 import type { Direction, GameState, HudPopKey } from './game/types'
 import './App.css'
 
@@ -64,10 +67,21 @@ function App() {
   const appStateRef = useRef(appState)
   const [activeDirection, setActiveDirection] = useState<Direction | null>(null)
   const [sceneTheme, setSceneTheme] = useState<SceneTheme>('day')
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false)
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
+  const [playerName, setPlayerName] = useState('')
+  const [hasSubmittedScore, setHasSubmittedScore] = useState(false)
+  const [isSubmittingScore, setIsSubmittingScore] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([])
+  const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(false)
+  const [leaderboardError, setLeaderboardError] = useState<string | null>(null)
+  const [leaderboardInfoMessage, setLeaderboardInfoMessage] = useState<string | null>(null)
   const feedbackTimeoutRef = useRef<number | null>(null)
   const previousGameOverRef = useRef(appState.game.gameOver)
   const { game, statPopVersion } = appState
   const { isMusicEnabled, playGameOverSound, playMoveSound, toggleMusic } = useGameAudio()
+  const isModalOpen = isSubmitModalOpen || isLeaderboardOpen
 
   const flashDirection = useCallback((direction: Direction) => {
     setActiveDirection(direction)
@@ -83,6 +97,10 @@ function App() {
   }, [])
 
   const executeMove = useCallback((direction: Direction) => {
+    if (isModalOpen) {
+      return
+    }
+
     flashDirection(direction)
 
     const { nextState, shouldPlayMoveSound } = buildNextAppState(appStateRef.current, direction)
@@ -94,10 +112,45 @@ function App() {
     if (shouldPlayMoveSound) {
       playMoveSound()
     }
-  }, [flashDirection, playMoveSound])
+  }, [flashDirection, isModalOpen, playMoveSound])
+
+  const loadLeaderboard = useCallback(async () => {
+    setIsLeaderboardLoading(true)
+    setLeaderboardError(null)
+
+    try {
+      const entries = await fetchLeaderboard(10)
+      setLeaderboardEntries(entries)
+    } catch (error) {
+      setLeaderboardError(error instanceof Error ? error.message : '排行榜加载失败，请稍后重试。')
+    } finally {
+      setIsLeaderboardLoading(false)
+    }
+  }, [])
+
+  const openLeaderboard = useCallback(() => {
+    setLeaderboardInfoMessage(null)
+    setIsLeaderboardOpen(true)
+  }, [])
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
+      if (isModalOpen && event.key === 'Escape') {
+        if (isSubmitModalOpen && !isSubmittingScore) {
+          setIsSubmitModalOpen(false)
+          setSubmitError(null)
+        } else if (isLeaderboardOpen) {
+          setIsLeaderboardOpen(false)
+          setLeaderboardInfoMessage(null)
+        }
+
+        return
+      }
+
+      if (isModalOpen) {
+        return
+      }
+
       const directionMap: Record<string, Direction> = {
         ArrowUp: 'up',
         ArrowDown: 'down',
@@ -125,7 +178,7 @@ function App() {
         window.clearTimeout(feedbackTimeoutRef.current)
       }
     }
-  }, [executeMove])
+  }, [executeMove, isLeaderboardOpen, isModalOpen, isSubmitModalOpen, isSubmittingScore])
 
   const maxTile = getMaxTile(game.board)
   const bestPetLabel = getBestPetLabel(maxTile)
@@ -137,6 +190,13 @@ function App() {
     }
     appStateRef.current = nextState
     setAppState(nextState)
+    setIsSubmitModalOpen(false)
+    setIsLeaderboardOpen(false)
+    setPlayerName('')
+    setHasSubmittedScore(false)
+    setIsSubmittingScore(false)
+    setSubmitError(null)
+    setLeaderboardInfoMessage(null)
   }
 
   const toggleTheme = useCallback(() => {
@@ -150,10 +210,50 @@ function App() {
   useEffect(() => {
     if (!previousGameOverRef.current && game.gameOver) {
       playGameOverSound()
+      if (!hasSubmittedScore) {
+        setSubmitError(null)
+        setIsSubmitModalOpen(true)
+      }
     }
 
     previousGameOverRef.current = game.gameOver
-  }, [game.gameOver, playGameOverSound])
+  }, [game.gameOver, hasSubmittedScore, playGameOverSound])
+
+  useEffect(() => {
+    if (!isLeaderboardOpen) {
+      return
+    }
+
+    void loadLeaderboard()
+  }, [isLeaderboardOpen, loadLeaderboard])
+
+  async function handleSubmitScore() {
+    const trimmedName = playerName.trim()
+    if (!trimmedName || isSubmittingScore) {
+      return
+    }
+
+    setIsSubmittingScore(true)
+    setSubmitError(null)
+
+    try {
+      await submitLeaderboardScore({
+        playerName: trimmedName,
+        score: game.score,
+        bestPet: bestPetLabel,
+      })
+
+      setPlayerName(trimmedName)
+      setHasSubmittedScore(true)
+      setIsSubmitModalOpen(false)
+      setLeaderboardInfoMessage('成绩上传成功，已经为你刷新排行榜。')
+      setIsLeaderboardOpen(true)
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : '成绩上传失败，请稍后再试。')
+    } finally {
+      setIsSubmittingScore(false)
+    }
+  }
 
   useEffect(() => {
     return () => {
@@ -173,14 +273,53 @@ function App() {
           scorePopVersion={statPopVersion.score}
           bestPetPopVersion={statPopVersion.bestPet}
           activeDirection={activeDirection}
-          isGameOver={game.gameOver}
           isMusicEnabled={isMusicEnabled}
+          isLeaderboardOpen={isLeaderboardOpen}
           theme={sceneTheme}
+          onOpenLeaderboard={openLeaderboard}
           onToggleMusic={toggleMusic}
           onToggleTheme={toggleTheme}
           onRestart={restartGame}
           onMove={executeMove}
         />
+        {isSubmitModalOpen ? (
+          <ScoreSubmitModal
+            bestPetLabel={bestPetLabel}
+            isSubmitting={isSubmittingScore}
+            playerName={playerName}
+            score={game.score}
+            submitError={submitError}
+            theme={sceneTheme}
+            onCancel={() => {
+              if (isSubmittingScore) {
+                return
+              }
+
+              setIsSubmitModalOpen(false)
+              setSubmitError(null)
+            }}
+            onChangePlayerName={setPlayerName}
+            onSubmit={() => {
+              void handleSubmitScore()
+            }}
+          />
+        ) : null}
+        {isLeaderboardOpen ? (
+          <LeaderboardModal
+            entries={leaderboardEntries}
+            errorMessage={leaderboardError}
+            infoMessage={leaderboardInfoMessage}
+            isLoading={isLeaderboardLoading}
+            theme={sceneTheme}
+            onClose={() => {
+              setIsLeaderboardOpen(false)
+              setLeaderboardInfoMessage(null)
+            }}
+            onRefresh={() => {
+              void loadLeaderboard()
+            }}
+          />
+        ) : null}
       </section>
     </main>
   )
