@@ -26,6 +26,11 @@
   background: linear-gradient(180deg, #eea53a 0%, #d88419 100%);
 }
 
+.music-toggle-button {
+  background: linear-gradient(180deg, #fff6e8 0%, #f0d9b3 100%);
+  color: #7c4a17;
+}
+
 @media (max-width: 720px) {
   .hud-topbar {
     flex-wrap: wrap;

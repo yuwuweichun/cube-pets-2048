@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useGameAudio } from './audio/useGameAudio'
 import GameHud from './components/hud/GameHud'
 import GameScene from './components/scene/GameScene'
 import {
@@ -21,6 +22,37 @@ function getMaxTile(board: GameState['board']) {
   return Math.max(...board.flatMap((row) => row.map((tile) => tile?.value ?? 0)), 0)
 }
 
+function buildNextAppState(current: AppState, direction: Direction) {
+  if (current.game.gameOver) {
+    return { nextState: current, shouldPlayMoveSound: false }
+  }
+
+  const moved = moveBoard(normalizeBoardMotion(current.game.board), direction)
+  if (!moved.changed) {
+    return { nextState: current, shouldPlayMoveSound: false }
+  }
+
+  const withSpawn = placeRandomTile(moved.board)
+  const nextGame = {
+    board: withSpawn,
+    score: current.game.score + moved.gained,
+    gameOver: !hasAvailableMoves(withSpawn),
+  }
+
+  return {
+    nextState: {
+      game: nextGame,
+      statPopVersion: {
+        score: current.statPopVersion.score + (nextGame.score > current.game.score ? 1 : 0),
+        bestPet:
+          current.statPopVersion.bestPet +
+          (getMaxTile(nextGame.board) > getMaxTile(current.game.board) ? 1 : 0),
+      },
+    },
+    shouldPlayMoveSound: true,
+  }
+}
+
 function App() {
   const [appState, setAppState] = useState<AppState>(() => ({
     game: buildInitialState(),
@@ -29,9 +61,12 @@ function App() {
       bestPet: 0,
     },
   }))
+  const appStateRef = useRef(appState)
   const [activeDirection, setActiveDirection] = useState<Direction | null>(null)
   const feedbackTimeoutRef = useRef<number | null>(null)
+  const previousGameOverRef = useRef(appState.game.gameOver)
   const { game, statPopVersion } = appState
+  const { isMusicEnabled, playGameOverSound, playMoveSound, toggleMusic } = useGameAudio()
 
   const flashDirection = useCallback((direction: Direction) => {
     setActiveDirection(direction)
@@ -48,35 +83,17 @@ function App() {
 
   const executeMove = useCallback((direction: Direction) => {
     flashDirection(direction)
-    setAppState((current) => {
-      if (current.game.gameOver) {
-        return current
-      }
 
-      const moved = moveBoard(normalizeBoardMotion(current.game.board), direction)
-      if (!moved.changed) {
-        return current
-      }
+    const { nextState, shouldPlayMoveSound } = buildNextAppState(appStateRef.current, direction)
+    if (nextState !== appStateRef.current) {
+      appStateRef.current = nextState
+      setAppState(nextState)
+    }
 
-      const withSpawn = placeRandomTile(moved.board)
-      const nextGame = {
-        board: withSpawn,
-        score: current.game.score + moved.gained,
-        gameOver: !hasAvailableMoves(withSpawn),
-      }
-
-      return {
-        game: nextGame,
-        statPopVersion: {
-          score:
-            current.statPopVersion.score + (nextGame.score > current.game.score ? 1 : 0),
-          bestPet:
-            current.statPopVersion.bestPet +
-            (getMaxTile(nextGame.board) > getMaxTile(current.game.board) ? 1 : 0),
-        },
-      }
-    })
-  }, [flashDirection])
+    if (shouldPlayMoveSound) {
+      playMoveSound()
+    }
+  }, [flashDirection, playMoveSound])
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -113,11 +130,25 @@ function App() {
   const bestPetLabel = getBestPetLabel(maxTile)
 
   function restartGame() {
-    setAppState((current) => ({
+    const nextState = {
       game: buildInitialState(),
-      statPopVersion: current.statPopVersion,
-    }))
+      statPopVersion: appStateRef.current.statPopVersion,
+    }
+    appStateRef.current = nextState
+    setAppState(nextState)
   }
+
+  useEffect(() => {
+    appStateRef.current = appState
+  }, [appState])
+
+  useEffect(() => {
+    if (!previousGameOverRef.current && game.gameOver) {
+      playGameOverSound()
+    }
+
+    previousGameOverRef.current = game.gameOver
+  }, [game.gameOver, playGameOverSound])
 
   useEffect(() => {
     return () => {
@@ -138,6 +169,8 @@ function App() {
           bestPetPopVersion={statPopVersion.bestPet}
           activeDirection={activeDirection}
           isGameOver={game.gameOver}
+          isMusicEnabled={isMusicEnabled}
+          onToggleMusic={toggleMusic}
           onRestart={restartGame}
           onMove={executeMove}
         />

@@ -11,6 +11,8 @@ type GameHudProps = {
   bestPetPopVersion: number
   activeDirection: Direction | null
   isGameOver: boolean
+  isMusicEnabled: boolean
+  onToggleMusic: () => void
   onRestart: () => void
   onMove: (direction: Direction) => void
   gameOverMessage?: string
@@ -23,6 +25,8 @@ function GameHud({
   bestPetPopVersion,
   activeDirection,
   isGameOver,
+  isMusicEnabled,
+  onToggleMusic,
   onRestart,
   onMove,
   gameOverMessage = '棋盘已经没有可移动或可合并的宠物了，点击 Restart 再来一局。',
@@ -44,6 +48,9 @@ function GameHud({
         />
         <button type="button" className="hud-button restart-button" onClick={onRestart}>
           Restart
+        </button>
+        <button type="button" className="hud-button music-toggle-button" onClick={onToggleMusic}>
+          {isMusicEnabled ? 'Music On' : 'Music Off'}
         </button>
       </div>
 
