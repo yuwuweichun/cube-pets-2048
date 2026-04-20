@@ -8,6 +8,18 @@
     0 10px 24px rgba(120, 53, 15, 0.1),
     0 18px 60px rgba(120, 53, 15, 0.08);
   transform-origin: center;
+  transition:
+    background-color 240ms ease,
+    border-color 240ms ease,
+    box-shadow 280ms ease;
+}
+
+.stat-card.is-night {
+  border-color: rgba(156, 190, 255, 0.18);
+  background: rgba(14, 25, 43, 0.72);
+  box-shadow:
+    0 12px 28px rgba(4, 10, 24, 0.26),
+    0 0 0 1px rgba(201, 223, 255, 0.04) inset;
 }
 
 .stat-card span {
@@ -16,6 +28,11 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #9a6b3a;
+  transition: color 240ms ease;
+}
+
+.stat-card.is-night span {
+  color: #9ab7e6;
 }
 
 .stat-card strong {
@@ -24,6 +41,11 @@
   font-size: 22px;
   line-height: 1;
   color: #4d2b15;
+  transition: color 240ms ease;
+}
+
+.stat-card.is-night strong {
+  color: #f4f8ff;
 }
 
 .stat-card.is-popping {
@@ -43,4 +65,3 @@
     transform: scale(1);
   }
 }
-
