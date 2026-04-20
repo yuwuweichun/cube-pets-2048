@@ -54,7 +54,8 @@
     box-shadow 160ms ease,
     background-color 180ms ease,
     color 180ms ease,
-    border-color 180ms ease;
+    border-color 180ms ease,
+    opacity 180ms ease;
 }
 
 .hud-icon-button:hover {
@@ -81,15 +82,36 @@
     opacity 180ms ease;
 }
 
-.restart-button {
+.restart-button.is-day {
   background: linear-gradient(180deg, #f2ae4b 0%, #d88419 100%);
 }
 
-.music-toggle-button {
+.theme-toggle-button.is-day,
+.music-toggle-button.is-day {
   background: linear-gradient(180deg, #f2ae4b 0%, #d88419 100%);
 }
 
-.music-toggle-button.is-enabled {
+.hud-icon-button.is-night {
+  border-color: rgba(142, 184, 255, 0.18);
+  background:
+    linear-gradient(180deg, rgba(67, 93, 138, 0.92) 0%, rgba(26, 38, 62, 0.98) 100%);
+  color: #f5f9ff;
+  box-shadow:
+    0 12px 26px rgba(4, 10, 24, 0.34),
+    0 0 0 1px rgba(177, 209, 255, 0.06) inset;
+}
+
+.hud-icon-button.is-night:hover {
+  box-shadow:
+    0 16px 30px rgba(4, 10, 24, 0.42),
+    0 0 0 1px rgba(177, 209, 255, 0.12) inset;
+}
+
+.theme-toggle-button.is-night svg {
+  filter: drop-shadow(0 0 10px rgba(255, 235, 166, 0.2));
+}
+
+.music-toggle-button.is-day.is-enabled {
   background: linear-gradient(180deg, #f5b95f 0%, #df8f22 100%);
   border-color: rgba(202, 138, 4, 0.3);
   color: #fffaf2;
@@ -99,10 +121,22 @@
   transform: scale(1);
 }
 
-.music-toggle-button.is-disabled {
+.music-toggle-button.is-day.is-disabled {
   background: linear-gradient(180deg, #ecb870 0%, #c97a21 100%);
   border-color: rgba(120, 53, 15, 0.18);
   color: rgba(255, 250, 242, 0.88);
+}
+
+.music-toggle-button.is-night.is-enabled {
+  border-color: rgba(126, 211, 255, 0.32);
+  background:
+    linear-gradient(180deg, rgba(54, 115, 168, 0.96) 0%, rgba(23, 64, 112, 1) 100%);
+  color: #f2fbff;
+}
+
+.music-toggle-button.is-night.is-disabled {
+  opacity: 0.84;
+  color: rgba(226, 238, 255, 0.82);
 }
 
 .music-toggle-button.is-disabled svg {

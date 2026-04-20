@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useGameAudio } from './audio/useGameAudio'
 import GameHud from './components/hud/GameHud'
-import GameScene from './components/scene/GameScene'
+import GameScene, { type SceneTheme } from './components/scene/GameScene'
 import {
   buildInitialState,
   hasAvailableMoves,
@@ -63,6 +63,7 @@ function App() {
   }))
   const appStateRef = useRef(appState)
   const [activeDirection, setActiveDirection] = useState<Direction | null>(null)
+  const [sceneTheme, setSceneTheme] = useState<SceneTheme>('day')
   const feedbackTimeoutRef = useRef<number | null>(null)
   const previousGameOverRef = useRef(appState.game.gameOver)
   const { game, statPopVersion } = appState
@@ -138,6 +139,10 @@ function App() {
     setAppState(nextState)
   }
 
+  const toggleTheme = useCallback(() => {
+    setSceneTheme((currentTheme) => (currentTheme === 'day' ? 'night' : 'day'))
+  }, [])
+
   useEffect(() => {
     appStateRef.current = appState
   }, [appState])
@@ -161,7 +166,7 @@ function App() {
   return (
     <main className="app-shell">
       <section className="canvas-panel canvas-panel-full">
-        <GameScene board={game.board} />
+        <GameScene board={game.board} theme={sceneTheme} />
         <GameHud
           score={game.score}
           bestPetLabel={bestPetLabel}
@@ -170,7 +175,9 @@ function App() {
           activeDirection={activeDirection}
           isGameOver={game.gameOver}
           isMusicEnabled={isMusicEnabled}
+          theme={sceneTheme}
           onToggleMusic={toggleMusic}
+          onToggleTheme={toggleTheme}
           onRestart={restartGame}
           onMove={executeMove}
         />

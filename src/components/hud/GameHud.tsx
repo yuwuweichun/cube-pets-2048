@@ -1,4 +1,5 @@
 import type { Direction } from '../../game/types'
+import type { SceneTheme } from '../scene/GameScene'
 import DirectionControls from './DirectionControls'
 import GameOverBanner from './GameOverBanner'
 import StatCard from './StatCard'
@@ -12,7 +13,9 @@ type GameHudProps = {
   activeDirection: Direction | null
   isGameOver: boolean
   isMusicEnabled: boolean
+  theme: SceneTheme
   onToggleMusic: () => void
+  onToggleTheme: () => void
   onRestart: () => void
   onMove: (direction: Direction) => void
   gameOverMessage?: string
@@ -51,6 +54,31 @@ function MusicOffIcon() {
   )
 }
 
+function SunIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="4.25" fill="currentColor" />
+      <path
+        d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.72 5.28l-2.12 2.12M7.4 16.6l-2.12 2.12M18.72 18.72l-2.12-2.12M7.4 7.4 5.28 5.28"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.8"
+      />
+    </svg>
+  )
+}
+
+function MoonIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        d="M14.8 2.6A8.9 8.9 0 1 0 21.4 15a7.2 7.2 0 1 1-6.6-12.4"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
 function GameHud({
   score,
   bestPetLabel,
@@ -59,11 +87,16 @@ function GameHud({
   activeDirection,
   isGameOver,
   isMusicEnabled,
+  theme,
   onToggleMusic,
+  onToggleTheme,
   onRestart,
   onMove,
   gameOverMessage = '棋盘已经没有可移动或可合并的宠物了，点击 Restart 再来一局。',
 }: GameHudProps) {
+  const nextThemeLabel = theme === 'day' ? 'Switch to Night Theme' : 'Switch to Day Theme'
+  const currentThemeLabel = theme === 'day' ? 'Day Theme' : 'Night Theme'
+
   return (
     <div className="hud-overlay">
       <div className="hud-topbar">
@@ -73,19 +106,21 @@ function GameHud({
             label="Score"
             value={score}
             isPopping={scorePopVersion > 0}
+            theme={theme}
           />
           <StatCard
             key={`best-pet-${bestPetPopVersion}`}
             label="Best Pet"
             value={bestPetLabel}
             isPopping={bestPetPopVersion > 0}
+            theme={theme}
           />
         </div>
 
         <div className="hud-action-stack">
           <button
             type="button"
-            className="hud-icon-button restart-button"
+            className={`hud-icon-button restart-button is-${theme}`}
             onClick={onRestart}
             aria-label="Restart game"
             title="Restart"
@@ -94,7 +129,7 @@ function GameHud({
           </button>
           <button
             type="button"
-            className={`hud-icon-button music-toggle-button ${isMusicEnabled ? 'is-enabled' : 'is-disabled'}`}
+            className={`hud-icon-button music-toggle-button is-${theme} ${isMusicEnabled ? 'is-enabled' : 'is-disabled'}`}
             onClick={onToggleMusic}
             aria-label={isMusicEnabled ? 'Turn music off' : 'Turn music on'}
             aria-pressed={isMusicEnabled}
@@ -102,10 +137,20 @@ function GameHud({
           >
             {isMusicEnabled ? <MusicOnIcon /> : <MusicOffIcon />}
           </button>
+          <button
+            type="button"
+            className={`hud-icon-button theme-toggle-button is-${theme}`}
+            onClick={onToggleTheme}
+            aria-label={nextThemeLabel}
+            aria-pressed={theme === 'night'}
+            title={currentThemeLabel}
+          >
+            {theme === 'day' ? <SunIcon /> : <MoonIcon />}
+          </button>
         </div>
       </div>
 
-      <DirectionControls activeDirection={activeDirection} onMove={onMove} />
+      <DirectionControls activeDirection={activeDirection} onMove={onMove} theme={theme} />
 
       {isGameOver ? <GameOverBanner message={gameOverMessage} /> : null}
     </div>
