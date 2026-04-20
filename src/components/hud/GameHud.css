@@ -3,6 +3,7 @@
   inset: 0;
   padding: 14px;
   pointer-events: none;
+  z-index: 20;
 }
 
 .hud-topbar {
@@ -119,6 +120,19 @@
 
 .music-toggle-button.is-enabled svg {
   transform: scale(1);
+}
+
+.leaderboard-button.is-active {
+  transform: translateY(-1px);
+  box-shadow:
+    0 16px 30px rgba(120, 53, 15, 0.18),
+    0 0 0 3px rgba(245, 158, 11, 0.16);
+}
+
+.leaderboard-button.is-night.is-active {
+  box-shadow:
+    0 16px 30px rgba(4, 10, 24, 0.42),
+    0 0 0 3px rgba(126, 211, 255, 0.14);
 }
 
 .music-toggle-button.is-day.is-disabled {

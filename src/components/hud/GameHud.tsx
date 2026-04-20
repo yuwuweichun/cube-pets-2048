@@ -1,7 +1,6 @@
 import type { Direction } from '../../game/types'
 import type { SceneTheme } from '../scene/GameScene'
 import DirectionControls from './DirectionControls'
-import GameOverBanner from './GameOverBanner'
 import StatCard from './StatCard'
 import './GameHud.css'
 
@@ -11,14 +10,14 @@ type GameHudProps = {
   scorePopVersion: number
   bestPetPopVersion: number
   activeDirection: Direction | null
-  isGameOver: boolean
   isMusicEnabled: boolean
+  isLeaderboardOpen: boolean
   theme: SceneTheme
+  onOpenLeaderboard: () => void
   onToggleMusic: () => void
   onToggleTheme: () => void
   onRestart: () => void
   onMove: (direction: Direction) => void
-  gameOverMessage?: string
 }
 
 function RestartIcon() {
@@ -79,20 +78,31 @@ function MoonIcon() {
   )
 }
 
+function TrophyIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        d="M7 4.5h10v1.75a4.75 4.75 0 0 1-3.75 4.65V13h1.25a1 1 0 0 1 1 1v1.25h1.25v2h-9.5v-2H9.5V14a1 1 0 0 1 1-1h1.25v-2.1A4.75 4.75 0 0 1 8 6.25zm-2.5.75h2v1a6.2 6.2 0 0 0 .08 1H5.75A1.75 1.75 0 0 1 4 5.5zm13 0h2A1.75 1.75 0 0 1 18.25 7.25h-.83a6.2 6.2 0 0 0 .08-1z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
 function GameHud({
   score,
   bestPetLabel,
   scorePopVersion,
   bestPetPopVersion,
   activeDirection,
-  isGameOver,
   isMusicEnabled,
+  isLeaderboardOpen,
   theme,
+  onOpenLeaderboard,
   onToggleMusic,
   onToggleTheme,
   onRestart,
   onMove,
-  gameOverMessage = '棋盘已经没有可移动或可合并的宠物了，点击 Restart 再来一局。',
 }: GameHudProps) {
   const nextThemeLabel = theme === 'day' ? 'Switch to Night Theme' : 'Switch to Day Theme'
   const currentThemeLabel = theme === 'day' ? 'Day Theme' : 'Night Theme'
@@ -147,12 +157,20 @@ function GameHud({
           >
             {theme === 'day' ? <SunIcon /> : <MoonIcon />}
           </button>
+          <button
+            type="button"
+            className={`hud-icon-button leaderboard-button is-${theme} ${isLeaderboardOpen ? 'is-active' : ''}`}
+            onClick={onOpenLeaderboard}
+            aria-label="打开排行榜"
+            aria-pressed={isLeaderboardOpen}
+            title="排行榜"
+          >
+            <TrophyIcon />
+          </button>
         </div>
       </div>
 
       <DirectionControls activeDirection={activeDirection} onMove={onMove} theme={theme} />
-
-      {isGameOver ? <GameOverBanner message={gameOverMessage} /> : null}
     </div>
   )
 }

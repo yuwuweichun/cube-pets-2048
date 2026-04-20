@@ -15,6 +15,11 @@ import {
   type ThemeBlendRef,
 } from './sceneShared'
 
+function seededUnitValue(seed: number) {
+  const raw = Math.sin(seed * 12.9898) * 43758.5453
+  return raw - Math.floor(raw)
+}
+
 type ThemeBlendControllerProps = {
   theme: SceneTheme
   themeBlendRef: ThemeBlendRef
@@ -45,6 +50,7 @@ function ThemeBlendController({ theme, themeBlendRef }: ThemeBlendControllerProp
 
 function SceneEnvironment({ themeBlendRef }: ThemeBlendOnlyProps) {
   const { scene } = useThree()
+  const sceneRef = useRef<THREE.Scene | null>(null)
   const backgroundColor = useMemo(
     () => new THREE.Color(SCENE_THEME_CONFIG.day.background),
     [],
@@ -59,19 +65,29 @@ function SceneEnvironment({ themeBlendRef }: ThemeBlendOnlyProps) {
   )
 
   useEffect(() => {
-    scene.background = backgroundColor
-    scene.fog = fogRef.current
+    sceneRef.current = scene
+  }, [scene])
+
+  useEffect(() => {
+    const targetScene = sceneRef.current
+    const fog = fogRef.current
+    if (!targetScene) {
+      return
+    }
+
+    targetScene.background = backgroundColor
+    targetScene.fog = fog
 
     return () => {
-      if (scene.background === backgroundColor) {
-        scene.background = null
+      if (targetScene.background === backgroundColor) {
+        targetScene.background = null
       }
 
-      if (scene.fog === fogRef.current) {
-        scene.fog = null
+      if (targetScene.fog === fog) {
+        targetScene.fog = null
       }
     }
-  }, [backgroundColor, scene])
+  }, [backgroundColor])
 
   useFrame(() => {
     const blend = themeBlendRef.current
@@ -219,13 +235,16 @@ function NightStars({ themeBlendRef }: ThemeBlendOnlyProps) {
 
         for (let index = 0; index < spec.count; index += 1) {
           const stride = index * 3
+          const xNoise = seededUnitValue((layerIndex + 1) * 1000 + index * 13 + 1)
+          const yNoise = seededUnitValue((layerIndex + 1) * 1000 + index * 13 + 2)
+          const zNoise = seededUnitValue((layerIndex + 1) * 1000 + index * 13 + 3)
           positions[stride] =
-            NIGHT_STAR_FIELD_PLACEMENT.baseX + (Math.random() - 0.5) * horizontalSpread
+            NIGHT_STAR_FIELD_PLACEMENT.baseX + (xNoise - 0.5) * horizontalSpread
           positions[stride + 1] =
-            NIGHT_STAR_FIELD_PLACEMENT.baseY - Math.random() * ySpread
+            NIGHT_STAR_FIELD_PLACEMENT.baseY - yNoise * ySpread
           positions[stride + 2] =
             NIGHT_STAR_FIELD_PLACEMENT.baseZ -
-            Math.random() * depthSpread * NIGHT_STAR_FIELD_PLACEMENT.depthMultiplier
+            zNoise * depthSpread * NIGHT_STAR_FIELD_PLACEMENT.depthMultiplier
         }
 
         return { positions, spec }
